@@ -1,0 +1,195 @@
+<html lang="en">
+<head>
+    <title>MPC Test Plots</title>
+  <meta charset="utf-8">
+  <meta name="MPC Test Plots" content="MPC Test Plots">
+  <style></style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="/js/jquery-latest.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+  <script src="http://code.highcharts.com/highcharts.js"></script></head>
+  <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+  <![endif]-->
+<body>
+  <div id="container" style="width:100%; height:700px;"></div>
+  <script>
+  $(function() {
+  // If you want to apply a set of options to all charts on the same page, use Highcharts.setOptions 
+  // You can find below only specific information to setOptions() but any option from $("#container").highcharts() works. (check 3.)
+  Highcharts.setOptions({
+    global: {
+      VMLRadialGradientURL: 'http://code.highcharts.com/{version}/gfx/vml-radial-gradient.png',  // Path to the pattern image required by VML browsers in order to draw radial gradients.
+      canvasToolsURL: 'http://code.highcharts.com/{version}/modules/canvas-tools.js',            // The URL to the additional file to lazy load for Android 2.x devices. These devices don't support SVG, so we download a helper file that contains canvg, its dependecy rbcolor, and our own CanVG Renderer class.
+      timezoneOffset: 0,  // The timezone offset in minutes
+      useUTC: true        // Whether to use UTC time for axis scaling, tickmark placement and time display in Highcharts.dateFormat. 
+    },
+    lang: {
+      contextButtonTitle: 'Download options',  // Exporting module menu. The tooltip title for the context menu holding print and export menu items.
+      decimalPoint: '.',                         // The default decimal point used in the Highcharts.numberFormat method unless otherwise specified in the function arguments.
+      downloadJPEG: 'Download JPEG image',       // Exporting module only. The text for the JPEG download menu item.
+      downloadPDF: 'Download PDF document',      // Exporting module only. The text for the PDF download menu item.
+      downloadSVG: 'Download SVG vector image',  // Exporting module only. The text for the SVG download menu item.
+      drillUpText: 'Back to {series.name}',      // The text for the button that appears when drilling down, linking back to the parent series.
+      loading: 'Loading...',                     // The loading text that appears when the chart is set into the loading state following a call to chart.showLoading.
+      months: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],  // An array containing the months names. Corresponds to the %B format in Highcharts.dateFormat().
+      shortMonths: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],  // An array containing the months names in abbreviated form. Corresponds to the %b format in Highcharts.dateFormat().
+      weekdays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],  // An array containing the weekday names.
+      noData: 'No data to display',  // The text to display when the chart contains no data. Requires the no-data module, see noData.
+      numericSymbols: ['k', 'M', 'G', 'T', 'P', 'E'],  // Metric prefixes used to shorten high numbers in axis labels. Replacing any of the positions with null causes the full number to be written.
+      printChart: 'Print chart',  // Exporting module only. The text for the menu item to print the chart.
+      resetZoom: 'Reset zoom',  // The text for the label appearing when a chart is zoomed.
+      resetZoomTitle: 'Reset zoom level 1:1',  // The tooltip title for the label appearing when a chart is zoomed.
+      thousandsSep: ','  // The default thousands separator used in the Highcharts.numberFormat method unless otherwise specified in the function arguments.
+          }
+  });
+});
+  
+  
+  $(function () { 
+    Highcharts.setOptions({
+        colors: [ '#4169E1','#696969', '#ADD8E6', '#BA55D3', '#FFFF00', '#00CED1', '#A9A9A9', '#006400', '#228B22', '#9ACD32', '#B22222', '#FF8C00']
+//         colors: ['#058DC7', '#50B432', '#ED561B', '#DDDF00', '#24CBE5', '#64E572', '#FF9655', '#FFF263', '#6AF9C4', '470024']});
+    });
+$('#container').highcharts({
+        chart: {
+            type: 'column',
+            borderColor: '#000000',
+            borderWidth: 2,
+            plotBorderColor: '#000000',
+            plotBorderWidth: 1,
+            spacingBottom: 15,
+            style: {
+                fontFamily: 'Arial',
+                fontSize: '22px'
+            },
+            zoomType: 'xy'
+        },
+        credits: {
+            enabled: true,
+            text: 'Produced by the Minor Planet Center',
+            href: 'http://minorplanetcenter.net',
+            style: {
+                cursor: 'pointer',
+                color: '#909090',
+                fontSize: '12px'
+            },
+            position: {
+                align: 'right',
+                x: -10,
+                verticalAlign: 'bottom',
+                y: -12
+           }
+        },
+        title: {
+            text: 'NEO Discoveries by Survey',
+            style: {
+                fontSize: '32px'
+            },
+        },
+        subtitle: {
+//             text: '(Click and drag mouse to zoom in)',
+            style: {
+                fontSize: '18px'
+            }
+        },
+        legend: {
+            borderColor: '#000000',
+            borderWidth: 1,
+            layout: 'vertical',
+            align: 'left',
+            verticalAlign: 'top',
+            y: 50,
+            padding: 13,
+            itemMarginTop: 5,
+            itemMarginBottom: 5,
+            itemStyle: {
+                lineHeight: '14px'
+            },
+            style: {
+                fontSize: '14px'
+            },
+        },
+        exporting: {
+            filename: 'NEA Discoveries by Year and Survey (by Minor Planet Center)',
+            sourceWidth: 1200,
+            sourceHeight: 900
+        },
+        plotOptions: {
+            series: {
+                stacking: 'normal',
+                borderColor: '#000000',
+                groupPadding: 0,
+                pointPadding: 0
+            },
+        },
+        tooltip: {
+            formatter: function () {
+                return '<b>' + this.x + '</b><br/>' +
+                    this.series.name + ': ' + this.y + '<br/>' +
+                    'Total: ' + this.point.stackTotal;
+            }
+        },
+                data: {
+            table: 'datatable'
+        },
+        xAxis: {
+            lineColor: '#000000',
+            lineWidth: 1,
+            tickColor: '#000000',
+            title: {
+                text: 'Year',
+                margin: 15
+            },
+            categories: ['1985', '1986', '1987', '1988', '1989', '1990', '1991', '1992', '1993', '1994', '1995', '1996', '1997', '1998', '1999', '2000', '2001', '2002', '2003', '2004', '2005', '2006', '2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015']
+        },
+        yAxis: {
+            title: {
+                text: 'Discoveries per year'
+            }
+        },
+        series: [{
+            name: 'Other',
+            data: [4,9,10,9,17,19,27,22,17,22,6,5,13,16,9,38,42,34,45,19,27,11,14,14,31,20,34,30,45,52,32]
+        }, {
+            name: 'WISE',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 117, 2, 1, 1, 40, 29]
+        }, {
+            name: 'DECam',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 132, 93]
+        }, {
+            name: 'LONEOS',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7, 12, 36, 38, 21, 53, 37, 39, 19, 11, 1, 0, 0, 0, 0, 0, 0, 0]
+        }, {
+            name: 'Pan-STARRS',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 162, 246, 355, 621, 661]
+        }, {
+            name: 'NEAT',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 9, 0, 0, 55, 113, 40, 18, 32, 21, 4, 0, 0, 0, 0, 0, 0, 0, 0]
+        }, {
+            name: 'Spacewatch',
+            data: [0, 0, 0, 0, 1, 5, 13, 8, 23, 24, 26, 28, 13, 32, 16, 24, 23, 24, 53, 71, 81, 90, 42, 84, 58, 41, 29, 26, 24, 16, 7]
+        }, {
+            name: 'Siding Spring',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 34, 51, 58, 48, 69, 52, 29, 33, 39, 22, 0, 0]
+        }, {
+            name: 'Catalina',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 27, 12, 0, 1, 7, 46, 139, 145, 179, 152, 227, 171, 172, 228, 234, 236, 212]
+        }, {
+            name: 'Mt. Lemmon',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 105, 167, 221, 314, 278, 394, 362, 349, 343, 380, 277]
+        }, {
+            name: 'LINEAR',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 16, 126, 155, 237, 266, 272, 220, 289, 129, 96, 108, 137, 106, 100, 69, 54, 3, 0, 0]
+        }, {
+            name: 'SST',
+            data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 51]
+        }]
+    });
+  });
+  </script>
+</body>
+</html>
+
