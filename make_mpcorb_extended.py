@@ -154,9 +154,6 @@ output_json_file = open('mpcorb_extended.json', 'w')
 output_json = []
 
 
-neo_flag_file = open('neo_flag_file', 'w')
-
-
 with open('mpcorb_extended.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
   for line in data_file:
@@ -213,13 +210,11 @@ with open('mpcorb_extended.dat', 'r') as data_file:
         sys.stderr.close()
         break
         
-      if hex_flags[1] == '8':
+      neo_flag = 0
+      if int(hex_flags[1],16) == (8 or 9 or 10 or 12):
         neo_flag = 1
-      elif hex_flags[1] == '0':
-        neo_flag = 0
-      else:
-        neo_flag_file.write(desig+' -- '+hex_flags[1]+'\n')
-        
+
+
       km_neo_flag = 0
       opp_flag = 0
       critical_flag = 0
@@ -347,5 +342,3 @@ sys.stderr.write('Program finished without known errors\n')
 sys.stderr.close()
 sys.stderr = sys.__stderr__
 
-
-neo_flag_file.close()
