@@ -21,12 +21,12 @@ import gzip
 
 # Get MPCORB.DAT over the internet:
 try:
-  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
+ urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
 except Exception as the_error:
-  localtime = time.localtime(time.time())
-  with open('make_mpcorb_extended.log', 'a') as log_file:
-    log_file.write(strftime('%Y/%m/%d at %H:%M:%S\n  Problem downloading file: \n  http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT\n  Error type: '+str(the_error)+'\n', localtime))
-  sys.exit(1)
+ localtime = time.localtime(time.time())
+ with open('make_mpcorb_extended.log', 'a') as log_file:
+   log_file.write(strftime('%Y/%m/%d at %H:%M:%S\n  Problem downloading file: \n  http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT\n  Error type: '+str(the_error)+'\n', localtime))
+ sys.exit(1)
 
 # Find length of header:
 with open('mpcorb.dat', 'r') as data_file:
@@ -76,7 +76,7 @@ for item in dbl_in:
 ids = ids + dbl
 
 try:
-  data_file = open('mpcorb.dat', 'rb')
+  data_file = open('mpcorb_test.dat', 'rb')
 except IOError:
   localtime = time.localtime(time.time())
   with open('make_mpcorb_extended.log', 'a') as log_file:
@@ -89,7 +89,7 @@ sys.stderr.write(strftime('%Y/%m/%d at %H:%M:%S\n  ', localtime))
 
 
 output_file = open('mpcorb_extended.dat', 'w')         
-with open('mpcorb.dat', 'r') as data_file:
+with open('mpcorb_test.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
   for item in head:
     output_file.write(item)
@@ -289,43 +289,7 @@ with open('mpcorb_extended.dat', 'r') as data_file:
       else:
         arc_length = ''
         arc_years = arc
-      output_json.append({'number':number,'Name':name,'Designation':desig,'Other_desigs':other_desig,'H':H,'G':G,'Epoch':round(epoch,7),'M':float(line[26:35].strip()),'Peri':float(line[37:46].strip()),'Node':float(line[48:57].strip()),'i':float(line[59:68].strip()),'e':float(line[70:79].strip()),'n':float(line[80:91].strip()),'a':float(line[92:103].strip()),'U':U,'ref':line[107:116].strip(),'Num_obs':num_obs,'Num_opps':int(line[123:126].strip()),'Arc_length':arc_length,'Arc_years':arc_years,'rms':rms,'Perturbers':line[142:145].strip(),'Perturbers_2':line[146:149].strip(),'Computer':line[150:160].strip(),'Hex_flags':hex_flags,'Last_obs':last_obs,'Tp':float(line[203:216].strip()),'Orbital_period':round(period,7),'Perihelion_dist':round(q_small,7),'Aphelion_dist':round(Q_big,7),'Semilatus_rectum':round(semilatus,7),'Synodic_period':round(synodic,7),'NEO_flag':neo_flag,'1-km_neo_flag':km_neo_flag,'1-opposition_object_flag':opp_flag,'Critical_list_numbered_object_flag':critical_flag,'PHA_flag':pha_flag})
-      #output_json_file.write('{"number":"'+number+'",\n')
-      #output_json_file.write('"Name":"'+name+'",\n')
-      #output_json_file.write('"Desig":"'+desig+'",\n')
-      #output_json_file.write('"Other_desig":"'+str(other_desig)+'",\n')
-      #output_json_file.write('"H":"'+line[8:13].strip()+'",\n')
-      #output_json_file.write('"G":"'+line[14:19].strip()+'",\n')
-      #output_json_file.write('"Epoch":"'+str(epoch)+'",\n')
-      #output_json_file.write('"M":"'+line[26:35].strip()+'",\n')
-      #output_json_file.write('"Peri":"'+line[37:46].strip()+'",\n')
-      #output_json_file.write('"Node":"'+line[48:57].strip()+'",\n')
-      #output_json_file.write('"i":"'+line[59:68].strip()+'",\n')
-      #output_json_file.write('"e":"'+line[70:79].strip()+'",\n')
-      #output_json_file.write('"n":"'+line[80:91].strip()+'",\n')
-      #output_json_file.write('"a":"'+line[92:103].strip()+'",\n')
-      #output_json_file.write('"U":"'+line[105]+'",\n')
-      #output_json_file.write('"ref":"'+line[107:116].strip()+'",\n')
-      #output_json_file.write('"#Obs":"'+line[117:122].strip()+'",\n')
-      #output_json_file.write('"#Opp":"'+line[123:126].strip()+'",\n')
-      #output_json_file.write('"Arc":"'+line[127:136].strip()+'",\n')
-      #output_json_file.write('"rms":"'+line[137:141].strip()+'",\n')
-      #output_json_file.write('"Perts":"'+line[142:145].strip()+'",\n')
-      #output_json_file.write('"Perts_2":"'+line[146:149].strip()+'",\n')
-      #output_json_file.write('"Computer":"'+line[150:160].strip()+'",\n')
-      #output_json_file.write('"Hex_flags":"'+line[161:165].strip()+'",\n')
-      #output_json_file.write('"Last_obs":"'+line[194:202].strip()+'",\n')
-      #output_json_file.write('"Tp":"'+line[203:216].strip()+'",\n')
-      #output_json_file.write('"P":"'+"{0:11.4f}".format(period).strip()+'",\n')
-      #output_json_file.write('"q":"'+"{0:11.7f}".format(q_small).strip()+'",\n')
-      #output_json_file.write('"Q":"'+"{0:11.7f}".format(Q_big).strip()+'",\n')
-      #output_json_file.write('"Semilatus_rectum":"'+"{0:11.7f}".format(semilatus).strip()+'"},\n')
-      #output_json_file.write('"":"'+line[].strip()+'",\n')
-      #output_json_file.write('"":"'+line[].strip()+'",\n')
-      #output_json_file.write('"":"'+line[].strip()+'",\n')
-      #output_json_file.write('"":"'+line[].strip()+'",\n')
-      #output_json_file.write('"":"'+line[].strip()+'",\n')
-      #"{0:11.7f}".format(q_small)
+      output_json.append({'Number':number,'Name':name,'Designation':desig,'Other_desigs':other_desig,'H':H,'G':G,'Epoch':round(epoch,7),'M':float(line[26:35].strip()),'Peri':float(line[37:46].strip()),'Node':float(line[48:57].strip()),'i':float(line[59:68].strip()),'e':float(line[70:79].strip()),'n':float(line[80:91].strip()),'a':float(line[92:103].strip()),'U':U,'Ref':line[107:116].strip(),'Num_obs':num_obs,'Num_opps':int(line[123:126].strip()),'Arc_length':arc_length,'Arc_years':arc_years,'rms':rms,'Perturbers':line[142:145].strip(),'Perturbers_2':line[146:149].strip(),'Computer':line[150:160].strip(),'Hex_flags':hex_flags,'Last_obs':last_obs,'Tp':float(line[203:216].strip()),'Orbital_period':round(period,7),'Perihelion_dist':round(q_small,7),'Aphelion_dist':round(Q_big,7),'Semilatus_rectum':round(semilatus,7),'Synodic_period':round(synodic,7),'NEO_flag':neo_flag,'One_km_NEO_flag':km_neo_flag,'One_opposition_object_flag':opp_flag,'Critical_list_numbered_object_flag':critical_flag,'PHA_flag':pha_flag})
 
 json.dump(output_json, output_json_file, indent=0)
 output_json_file.close()
@@ -342,3 +306,6 @@ sys.stderr.write('Program finished without known errors\n')
 sys.stderr.close()
 sys.stderr = sys.__stderr__
 
+os.remove('mpcorb.dat')
+os.remove('mpcorb_extended.dat')
+os.remove('mpcorb_extended.json')
