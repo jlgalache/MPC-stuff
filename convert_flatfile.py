@@ -20,8 +20,8 @@ parser.add_argument('-ct','--col_type', nargs='*', help='Column data type')
 parser.add_argument('-cn','--col_names', nargs='*', default='', type=str, help='Column names if you don\'t want to use the header or it\'s missing')
 args = parser.parse_args()
 
-print(' Input file: '+args.flat_filename+' and length is: '+str(len(args.flat_filename)))
-print(' Output file: '+args.output_filename+' and length is: '+str(len(args.output_filename)))
+print(' Input file: '+args.flat_filename)
+print(' Output file: '+args.output_filename)
 print(' Column starts: '+str(args.col_start)+' and length is: '+str(len(args.col_start)))
 print(' Column width: '+str(args.col_width)+' and length is: '+str(len(args.col_width)))
 print(' Column type: '+str(args.col_type)+' and length is: '+str(len(args.col_type)))
@@ -33,10 +33,7 @@ input_file = open(args.flat_filename, 'r')
 # Get column names from the appropriate line or from the provided names
 if args.col_name_line != -1:
   for read_count, line in enumerate(input_file):
-    print('  count is: '+read_count)
-    if (read_count+1) != args.col_name_line:
-      duff = input_file.readline()
-    else:
+    if (read_count+1) == args.col_name_line:
       headings = []
       for i, j in enumerate(args.col_start):
         headings.append(str.strip(line[j:j+args.col_width[i]]))
@@ -51,7 +48,7 @@ else:
 # Get to the line where the data starts
 if args.header_lines > read_count:
   for i, line in enumerate(input_file): 
-    if i == (args.header_lines - read_count - 1):
+    if i == (args.header_lines - read_count - 2):
       break
 
 output_json_file = open(args.output_filename, 'w')
@@ -59,24 +56,16 @@ output_json = []
 
 # Start reading in data
 for line in input_file:
-  print(line.rstrip())
   line_dict = {}
   for  i, j in enumerate(args.col_start):
-    print(' i = '+str(i)+', j = '+str(j)+' -- args.col_width = '+str(args.col_width[i])+' -- heading: '+str(headings[i]))
     if str.strip(line[j:j+args.col_width[i]]) != '':
       if args.col_type[i] == 'int':
         line_dict[headings[i]] = int(str.strip(line[j:j+args.col_width[i]]))
-        #line_dict.append({str(headings[i]):int(str.strip(line[j:j+args.col_width[i]]))})
       elif args.col_type[i] == 'flt':
         line_dict[headings[i]] = float(str.strip(line[j:j+args.col_width[i]]))
-        #line_dict.append({str(headings[i]):float(str.strip(line[j:j+args.col_width[i]]))})
       elif args.col_type[i] == 'str':
         line_dict[headings[i]] = str.strip(line[j:j+args.col_width[i]])
-        #line_dict.append({str(headings[i]):str.strip(line[j:j+args.col_width[i]])})
   output_json.append(line_dict)
-
-#print(headings)
-#print(str(count))
 
 
 json.dump(output_json, output_json_file, indent=0)
