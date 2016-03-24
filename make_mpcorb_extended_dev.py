@@ -13,18 +13,24 @@ import urllib.request
 import json
 import shutil
 import gzip
+import mpc_db
 
+# Don't forget to add path to mpc_db:
+# export PYTHONPATH=/home/mpc/mpcops/lib
+
+
+root_filename = 'mpcorb_extended_dev'
 
 # Open logfile and set starting time
-sys.stderr = open('make_mpcorb_extended.log', 'a')
+sys.stderr = open(root_filename+'.log', 'a')
 localtime = time.localtime(time.time())
 sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started\n  ', localtime))
 
-
 # Get MPCORB.DAT over the internet or locally from /base/public/iau/:
 try:
-  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
-  #shutil.copyfile('iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
+#  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
+#  shutil.copyfile('iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
+  shutil.copyfile('mpcorb_test.dat', 'mpcorb.dat')
 except Exception as the_error:
   localtime = time.localtime(time.time())
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT\n  Error type: '+str(the_error)+'\n', localtime))
@@ -40,24 +46,24 @@ with open('mpcorb.dat', 'r') as data_file:
       break
 
 try:
-  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/ids.txt', 'ids.txt')
-  #shutil.copyfile('iau/ECS/MPCAT/ids.txt', 'ids.txt')
+#  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/ids.txt', 'ids.txt')
+  shutil.copyfile('iau/ECS/MPCAT/ids.txt', 'ids.txt')
 except Exception as the_error:
   localtime = time.localtime(time.time())
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/ECS/MPCAT/ids.txt\n  Error type: '+str(the_error)+'\n', localtime))
   sys.exit(1)
 
 try:
-  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/dbl.txt', 'dbl.txt')
-  #shutil.copyfile('iau/ECS/MPCAT/dbl.txt', 'dbl.txt')
+#  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/dbl.txt', 'dbl.txt')
+  shutil.copyfile('iau/ECS/MPCAT/dbl.txt', 'dbl.txt')
 except Exception as the_error:
   localtime = time.localtime(time.time())
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/ECS/MPCAT/dbl.txt\n  Error type: '+str(the_error)+'\n', localtime))
   sys.exit(1)
 
 try:
-  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/numids.txt', 'numids.txt')
-  #shutil.copyfile('iau/ECS/MPCAT/numids.txt', 'numids.txt')
+#  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/numids.txt', 'numids.txt')
+  shutil.copyfile('iau/ECS/MPCAT/numids.txt', 'numids.txt')
 except Exception as the_error:
   localtime = time.localtime(time.time())
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/ECS/MPCAT/numids.txt\n  Error type: '+str(the_error)+'\n', localtime))
@@ -84,8 +90,7 @@ except IOError:
   sys.stderr.write(strftime('%H:%M:%S - Problem opening file: \n  '+str(os.getcwd())+'/mpcorb.dat\n'), localtime)
   sys.exit(1)
 
-
-output_file = open('mpcorb_extended.dat', 'w')         
+output_file = open(root_filename+'.dat', 'w')         
 with open('mpcorb.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
   for item in head:
@@ -147,11 +152,13 @@ with open('mpcorb.dat', 'r') as data_file:
           output_file.write(line.rstrip()+' '+"{0:13.5f}".format(Tp)+'\n')
 output_file.close()
 
-output_json_file = open('mpcorb_extended.json', 'w')
+output_json_file = open(root_filename+'.json', 'w')
 output_json = []
 
+cnx = mpc_db.connect_to_mpc_development()
 
-with open('mpcorb_extended.dat', 'r') as data_file:
+
+with open(root_filename+'.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
   for line in data_file:
     line_dict = {}
@@ -272,15 +279,21 @@ with open('mpcorb_extended.dat', 'r') as data_file:
       if rms != '':
         line_dict['rms'] = float(rms)
       U = line[105].strip()
-#      if U.isnumeric():
-#        U = int(U)
+      if U != '':
+        line_dict['U'] = U
       arc = line[127:136]
       if 'days' in arc:
         line_dict['Arc_length'] = int(arc[:4].strip())
       else:
         line_dict['Arc_years'] = arc
+      if number != '':
+        line_dict['Number'] = number
+      if name != '':
+        line_dict['Name'] = name
+      if other_desig != []:
+        line_dict['Other_desigs'] = other_desig
         
-      line_dict2 = {'Number':number,'Name':name,'Designation':desig,'Other_desigs':other_desig,'Epoch':round(epoch,7),'M':float(line[26:35].strip()),'Peri':float(line[37:46].strip()),'Node':float(line[48:57].strip()),'i':float(line[59:68].strip()),'e':float(line[70:79].strip()),'n':float(line[80:91].strip()),'a':float(line[92:103].strip()),'U':U,'Ref':line[107:116].strip(),'Num_opps':int(line[123:126].strip()),'Perturbers':line[142:145].strip(),'Perturbers_2':line[146:149].strip(),'Computer':line[150:160].strip(),'Hex_flags':hex_flags,'Last_obs':last_obs,'Tp':float(line[203:216].strip()),'Orbital_period':round(period,7),'Perihelion_dist':round(q_small,7),'Aphelion_dist':round(Q_big,7),'Semilatus_rectum':round(semilatus,7),'Synodic_period':round(synodic,7)}  
+      line_dict2 = {'Designation':desig,'Epoch':round(epoch,7),'M':float(line[26:35].strip()),'Peri':float(line[37:46].strip()),'Node':float(line[48:57].strip()),'i':float(line[59:68].strip()),'e':float(line[70:79].strip()),'n':float(line[80:91].strip()),'a':float(line[92:103].strip()),'Ref':line[107:116].strip(),'Num_opps':int(line[123:126].strip()),'Perturbers':line[142:145].strip(),'Perturbers_2':line[146:149].strip(),'Computer':line[150:160].strip(),'Hex_flags':hex_flags,'Last_obs':last_obs,'Tp':float(line[203:216].strip()),'Orbital_period':round(period,7),'Perihelion_dist':round(q_small,7),'Aphelion_dist':round(Q_big,7),'Semilatus_rectum':round(semilatus,7),'Synodic_period':round(synodic,7)}  
       
       line_dict.update(line_dict2)
       output_json.append(line_dict)
@@ -289,17 +302,17 @@ with open('mpcorb_extended.dat', 'r') as data_file:
 json.dump(output_json, output_json_file, indent=0)
 output_json_file.close()
 
-with open('mpcorb_extended.dat', 'rb') as input_file:
-  with gzip.open('mpcorb_extended.dat.gz', 'wb') as output_file:
+with open(root_filename+'.dat', 'rb') as input_file:
+  with gzip.open(root_filename+'.dat.gz', 'wb') as output_file:
     shutil.copyfileobj(input_file, output_file)
 
-with open('mpcorb_extended.json', 'rb') as input_file:
-  with gzip.open('mpcorb_extended.json.gz', 'wb') as output_file:
+with open(root_filename+'.json', 'rb') as input_file:
+  with gzip.open(root_filename+'.json.gz', 'wb') as output_file:
     shutil.copyfileobj(input_file, output_file)
 
 os.remove('mpcorb.dat')
-os.remove('mpcorb_extended.dat')
-os.remove('mpcorb_extended.json')
+os.remove(root_filename+'.dat')
+os.remove(root_filename+'.json')
 os.remove('numids.txt')
 os.remove('ids.txt')
 os.remove('dbl.txt')
@@ -309,3 +322,14 @@ sys.stderr.write(strftime('%H:%M:%S - Program finished without known errors\n', 
 sys.stderr.close()
 sys.stderr = sys.__stderr__
 
+
+
+def fetch_disc_info(desig,cnx):
+  query = "select original_record from observations where discovery_flag = '*' and designation = binary('{}') or number = '{}'".format(desig,desig)
+  rows = mpc_db.mysql_execute_query(cnx, query)
+  return(rows)
+  
+def fetch_desig_info(number,cnx):
+  query = "select designation from numbered_mps where number = '{}'".format(number)
+  rows = mpc_db.mysql_execute_query(cnx, query)
+  return(rows)
