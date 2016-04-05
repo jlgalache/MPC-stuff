@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import argparse
 import urllib.request
 from itertools import islice
 import sys
@@ -21,23 +20,18 @@ sys.stderr = open('make_mpcorb_extended.log', 'a')
 localtime = time.localtime(time.time())
 sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started\n  ', localtime))
 
-parser = argparse.ArgumentParser()
-parser.add_argument('infile', default='', type=str, help='Name of the file to be converted to JSON')
-args = parser.parse_args()
 
-infile_soul = os.path.splitext(args.infile.lower())[0]
-
-# Get the file over the internet or locally from /base/public/iau/:
+# Get MPCORB.DAT over the internet or locally from /base/public/iau/:
 try:
-  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/MPCORB/'+args.infile, 'infile.dat')
-  #shutil.copyfile('iau/MPCORB/'+args.infile, 'infile.dat')
+  urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
+  #shutil.copyfile('iau/MPCORB/MPCORB.DAT', 'mpcorb.dat')
 except Exception as the_error:
   localtime = time.localtime(time.time())
-  sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/MPCORB/'+args.infile+'\n  Error type: '+str(the_error)+'\n', localtime))
+  sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/MPCORB/MPCORB.DAT\n  Error type: '+str(the_error)+'\n', localtime))
   sys.exit(1)
 
 # Find length of header:
-with open('infile.dat', 'r') as data_file:
+with open('mpcorb.dat', 'r') as data_file:
   c = 0
   for  line in data_file:
     c = c + 1
@@ -84,14 +78,15 @@ for item in dbl_in:
 ids = ids + dbl
 
 try:
-  data_file = open('infile.dat', 'rb')
+  data_file = open('mpcorb.dat', 'rb')
 except IOError:
   localtime = time.localtime(time.time())
   sys.stderr.write(strftime('%H:%M:%S - Problem opening file: \n  '+str(os.getcwd())+'/mpcorb.dat\n'), localtime)
   sys.exit(1)
 
-output_file = open(infile_soul+'_extended.dat', 'w')         
-with open('infile.dat', 'r') as data_file:
+
+output_file = open('mpcorb_extended.dat', 'w')         
+with open('mpcorb.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
   for item in head:
     output_file.write(item)
@@ -152,11 +147,11 @@ with open('infile.dat', 'r') as data_file:
           output_file.write(line.rstrip()+' '+"{0:13.5f}".format(Tp)+'\n')
 output_file.close()
 
-output_json_file = open(infile_soul+'_extended.json', 'w')
+output_json_file = open('mpcorb_extended.json', 'w')
 output_json = []
 
 
-with open(infile_soul+'_extended.dat', 'r') as data_file:
+with open('mpcorb_extended.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
   for line in data_file:
     line_dict = {}
@@ -277,21 +272,15 @@ with open(infile_soul+'_extended.dat', 'r') as data_file:
       if rms != '':
         line_dict['rms'] = float(rms)
       U = line[105].strip()
-      if U != '':
-        line_dict['U'] = U
+#      if U.isnumeric():
+#        U = int(U)
       arc = line[127:136]
       if 'days' in arc:
         line_dict['Arc_length'] = int(arc[:4].strip())
       else:
         line_dict['Arc_years'] = arc
-      if number != '':
-        line_dict['Number'] = number
-      if name != '':
-        line_dict['Name'] = name
-      if other_desig != '':
-        line_dict['Other_desigs'] = other_desig
         
-      line_dict2 = {'Designation':desig,'Epoch':round(epoch,7),'M':float(line[26:35].strip()),'Peri':float(line[37:46].strip()),'Node':float(line[48:57].strip()),'i':float(line[59:68].strip()),'e':float(line[70:79].strip()),'n':float(line[80:91].strip()),'a':float(line[92:103].strip()),'Ref':line[107:116].strip(),'Num_opps':int(line[123:126].strip()),'Perturbers':line[142:145].strip(),'Perturbers_2':line[146:149].strip(),'Computer':line[150:160].strip(),'Hex_flags':hex_flags,'Last_obs':last_obs,'Tp':float(line[203:216].strip()),'Orbital_period':round(period,7),'Perihelion_dist':round(q_small,7),'Aphelion_dist':round(Q_big,7),'Semilatus_rectum':round(semilatus,7),'Synodic_period':round(synodic,7)} 
+      line_dict2 = {'Number':number,'Name':name,'Designation':desig,'Other_desigs':other_desig,'Epoch':round(epoch,7),'M':float(line[26:35].strip()),'Peri':float(line[37:46].strip()),'Node':float(line[48:57].strip()),'i':float(line[59:68].strip()),'e':float(line[70:79].strip()),'n':float(line[80:91].strip()),'a':float(line[92:103].strip()),'U':U,'Ref':line[107:116].strip(),'Num_opps':int(line[123:126].strip()),'Perturbers':line[142:145].strip(),'Perturbers_2':line[146:149].strip(),'Computer':line[150:160].strip(),'Hex_flags':hex_flags,'Last_obs':last_obs,'Tp':float(line[203:216].strip()),'Orbital_period':round(period,7),'Perihelion_dist':round(q_small,7),'Aphelion_dist':round(Q_big,7),'Semilatus_rectum':round(semilatus,7),'Synodic_period':round(synodic,7)}  
       
       line_dict.update(line_dict2)
       output_json.append(line_dict)
@@ -300,17 +289,17 @@ with open(infile_soul+'_extended.dat', 'r') as data_file:
 json.dump(output_json, output_json_file, indent=0)
 output_json_file.close()
 
-with open(infile_soul+'_extended.dat', 'rb') as input_file:
-  with gzip.open(infile_soul+'_extended.dat.gz', 'wb') as output_file:
+with open('mpcorb_extended.dat', 'rb') as input_file:
+  with gzip.open('mpcorb_extended.dat.gz', 'wb') as output_file:
     shutil.copyfileobj(input_file, output_file)
 
-with open(infile_soul+'_extended.json', 'rb') as input_file:
-  with gzip.open(infile_soul+'_extended.json.gz', 'wb') as output_file:
+with open('mpcorb_extended.json', 'rb') as input_file:
+  with gzip.open('mpcorb_extended.json.gz', 'wb') as output_file:
     shutil.copyfileobj(input_file, output_file)
 
-os.remove('infile.dat')
-os.remove(infile_soul+'_extended.dat')
-os.remove(infile_soul+'_extended.json')
+os.remove('mpcorb.dat')
+os.remove('mpcorb_extended.dat')
+os.remove('mpcorb_extended.json')
 os.remove('numids.txt')
 os.remove('ids.txt')
 os.remove('dbl.txt')
