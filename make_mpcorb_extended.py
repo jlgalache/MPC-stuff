@@ -16,18 +16,19 @@ import shutil
 import gzip
 
 
-# Open logfile and set starting time
+# Open logfile and set starting time:
 sys.stderr = open('make_mpcorb_extended.log', 'a')
 localtime = time.localtime(time.time())
 sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started\n  ', localtime))
 
+# Get the name of the file to be converted:
 parser = argparse.ArgumentParser()
 parser.add_argument('infile', default='', type=str, help='Name of the file to be converted to JSON')
 args = parser.parse_args()
 
 infile_soul = os.path.splitext(args.infile.lower())[0]
 
-# Get the file over the internet or locally from /base/public/iau/:
+# Get the input file over the internet or locally from /base/public/iau/:
 try:
   urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/MPCORB/'+args.infile, 'infile.dat')
   #shutil.copyfile('iau/MPCORB/'+args.infile, 'infile.dat')
@@ -36,7 +37,7 @@ except Exception as the_error:
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/MPCORB/'+args.infile+'\n  Error type: '+str(the_error)+'\n', localtime))
   sys.exit(1)
 
-# Find length of header:
+# Find length of header, if there is one (assumes header less than 100 lines long):
 with open('infile.dat', 'r') as data_file:
   c = 0
   for  line in data_file:
@@ -44,7 +45,12 @@ with open('infile.dat', 'r') as data_file:
     if line[:2] == '--':
       num_header_lines = c
       break
+    if c == 100:
+      num_header_lines = 0
+      break
 
+# Get the 3 identification files:
+# ids.txt lists the multi-opposition unnumbered objects:
 try:
   urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/ids.txt', 'ids.txt')
   #shutil.copyfile('iau/ECS/MPCAT/ids.txt', 'ids.txt')
@@ -53,6 +59,7 @@ except Exception as the_error:
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/ECS/MPCAT/ids.txt\n  Error type: '+str(the_error)+'\n', localtime))
   sys.exit(1)
 
+# dbl.txt lists the single-opposition unnumbered objects:
 try:
   urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/dbl.txt', 'dbl.txt')
   #shutil.copyfile('iau/ECS/MPCAT/dbl.txt', 'dbl.txt')
@@ -61,6 +68,7 @@ except Exception as the_error:
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/ECS/MPCAT/dbl.txt\n  Error type: '+str(the_error)+'\n', localtime))
   sys.exit(1)
 
+# numids.txt lists the numbered objects:
 try:
   urllib.request.urlretrieve ('http://www.minorplanetcenter.net/iau/ECS/MPCAT/numids.txt', 'numids.txt')
   #shutil.copyfile('iau/ECS/MPCAT/numids.txt', 'numids.txt')
@@ -76,7 +84,7 @@ numids_file = open('numids.txt', 'r')
 
 numids = numids_file.readlines()
 ids = ids_file.readlines()
-# Deal with the dbl file having a different format to numids and ids files, then combine it with ids:
+# Deal with the dbl file having a different format to numids and ids files, then combine it with ids into a single file:
 dbl_in = dbl_file.readlines()
 dbl=[]
 for item in dbl_in:
@@ -90,6 +98,7 @@ except IOError:
   sys.stderr.write(strftime('%H:%M:%S - Problem opening file: \n  '+str(os.getcwd())+'/mpcorb.dat\n'), localtime)
   sys.exit(1)
 
+# Create and populate the extended version of the input file:
 output_file = open(infile_soul+'_extended.dat', 'w')         
 with open('infile.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
@@ -100,6 +109,9 @@ with open('infile.dat', 'r') as data_file:
       output_file.write('\n')
     else:
       p_desig = line[:7] # Principal Designation
+      name = line[175:193].rstrip()
+      if name[:2].isnumeric():
+        name = ''
       epoch = line[20:25]
       epoch = me.convert_packed_date_to_jd(epoch)
       M = float(line[26:35])
@@ -109,9 +121,9 @@ with open('infile.dat', 'r') as data_file:
         Tp = epoch + (360.0-M)/n
       else:
         Tp = epoch - M/n
-      if len(p_desig.strip()) == 5:
+      if len(p_desig.strip()) == 5:  # This is a numbered object
         discovery_flag = 0
-        for count, line2 in enumerate(numids):
+        for count, line2 in enumerate(numids):  # Find its entry in numids to check for other designations
           if line2[:6] == p_desig[:6]:
             discovery_flag = 1
             line2 = line2[6:]
@@ -126,7 +138,10 @@ with open('infile.dat', 'r') as data_file:
               line2 = line2.rstrip()
             line2 = [line2[i:i+7] for i in range(0, len(line2), 7)]
             line3 = []
-            for d in line2:
+            #for d in line2:
+            for count2, d in enumerate(line2):
+              if (name == '') and (count2 == 0):  # If it isn't named, then the principal designation is already in the
+                continue                          # file and it's not necessary to repeat it at the end of the line.
               unpacked = me.packed_to_unpacked_desig(d)
               line3.append("{0:10s}".format(unpacked))
             output_file.write(line.rstrip()+' '+"{0:13.5f}".format(Tp)+' '+line20+" ".join(line3)+'\n')
@@ -134,9 +149,9 @@ with open('infile.dat', 'r') as data_file:
             break
         if discovery_flag == 0:
           output_file.write(line.rstrip()+' '+"{0:13.5f}".format(Tp)+'\n')
-      else:
+      else:  # This is an unnumbered object
         discovery_flag = 0
-        for count, line2 in enumerate(ids):
+        for count, line2 in enumerate(ids):  # Find its entry in ids to check for other designations
           if line2[:7] == p_desig:
             discovery_flag = 1
             line2 = line2[7:].rstrip()
@@ -152,9 +167,10 @@ with open('infile.dat', 'r') as data_file:
           output_file.write(line.rstrip()+' '+"{0:13.5f}".format(Tp)+'\n')
 output_file.close()
 
+
+# Create the JSON version of the extended file:
 output_json_file = open(infile_soul+'_extended.json', 'w')
 output_json = []
-
 
 with open(infile_soul+'_extended.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
@@ -162,14 +178,15 @@ with open(infile_soul+'_extended.dat', 'r') as data_file:
     line_dict = {}
     if line.strip():
       p_desig = line[:7].strip()
-      if len(p_desig) == 5:
+      if len(p_desig) == 5:  # This is a numbered object
         number = me.packed_to_unpacked_desig(p_desig)
         name = line[175:193].rstrip()
-        desig = line[217:227].rstrip()
         if name[:2].isnumeric():
           desig = name
           name = ''
-      else:
+        else:
+          desig = line[217:227].rstrip()
+      else:  # This is an unnumbered object
         number = ''
         name = ''
         desig = line[175:193].rstrip()
@@ -209,9 +226,13 @@ with open(infile_soul+'_extended.dat', 'r') as data_file:
       elif hex_flags[3] == 'A':
         orbit_type = 'Distant Object'
       else:
-        sys.stderr.write('  Unknown orbit type, '+hex_flags[3]+' for object: '+desig+'\n')
-        sys.stderr.close()
-        break
+        orbit_type = 'Something Else'
+        #print('  Unknown orbit type \''+hex_flags[3]+'\' for object: '+desig)
+        #localtime = time.localtime(time.time())
+        #sys.stderr.write(strftime('%H:%M:%S - Unknown orbit type:\n  Orbit type \''+hex_flags[3]+'\' for object: '+desig+'\n', localtime))
+        #sys.stderr.write('  Unknown orbit type, '+hex_flags[3]+' for object: '+desig+'\n')
+        #sys.stderr.close()
+        #sys.exit(1)
         
       if int(hex_flags[1],16) == (8 or 9 or 10 or 12):
         line_dict['NEO_flag'] = 1
@@ -288,7 +309,7 @@ with open(infile_soul+'_extended.dat', 'r') as data_file:
         line_dict['Number'] = number
       if name != '':
         line_dict['Name'] = name
-      if other_desig != '':
+      if other_desig != []:
         line_dict['Other_desigs'] = other_desig
         
       line_dict2 = {'Designation':desig,'Epoch':round(epoch,7),'M':float(line[26:35].strip()),'Peri':float(line[37:46].strip()),'Node':float(line[48:57].strip()),'i':float(line[59:68].strip()),'e':float(line[70:79].strip()),'n':float(line[80:91].strip()),'a':float(line[92:103].strip()),'Ref':line[107:116].strip(),'Num_opps':int(line[123:126].strip()),'Perturbers':line[142:145].strip(),'Perturbers_2':line[146:149].strip(),'Computer':line[150:160].strip(),'Hex_flags':hex_flags,'Last_obs':last_obs,'Tp':float(line[203:216].strip()),'Orbital_period':round(period,7),'Perihelion_dist':round(q_small,7),'Aphelion_dist':round(Q_big,7),'Semilatus_rectum':round(semilatus,7),'Synodic_period':round(synodic,7)} 
