@@ -1,0 +1,23 @@
+#!/bin/bash -f
+# -*- coding: utf-8 -*-
+
+export PYTHONPATH=/home/mpc/mpcops/lib
+
+filenames=(NEA.txt PHA.txt DAILY.DAT Unusual.txt Distant.txt NEAm00.txt NEAm01.txt NEAm02.txt NEAm03.txt NEAm04.txt NEAm05.txt NEAm06.txt NEAm07.txt NEAm08.txt NEAm09.txt NEAm10.txt NEAm11.txt NEAm12.txt NEAm13.txt NEAm14.txt NEAm15.txt NEAp00.txt NEAp01.txt NEAp02.txt NEAp03.txt NEAp04.txt NEAp05.txt NEAp06.txt NEAp07.txt NEAp08.txt NEAp09.txt NEAp10.txt NEAp11.txt NEAp12.txt NEAp13.txt NEAp14.txt NEAp15.txt)
+
+n_elements=${#filenames[@]}
+max_index=`expr $n_elements - 1`
+
+cd /base/public/iau/MPCORB
+for ((i = 0; i <= max_index; i++)); do
+#  echo " Working on: ${filenames[i]}"
+# Time since file was last modified:
+  lastmod=`expr $(date +%s) - $(date +%s -r ${filenames[i]})`
+  if [ "$lastmod" -le "300" ]; then
+    cd /base/public
+    python3 make_mpcorb_extended.py ${filenames[i]} --directory Extended_Files
+    cd /base/public/iau/MPCORB
+  fi
+done
+
+
