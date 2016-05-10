@@ -26,10 +26,13 @@ parser.add_argument('-v','--verbose', action='store_true', help='Prints run stat
 parser.add_argument('--directory', default='', type=str, help='Name of the directory to place the output files in')
 args = parser.parse_args()
 
+if args.directory != '':
+  args.directory = args.directory.rstrip('/')+'/'
+
 # Open logfile and set starting time:
 sys.stderr = open(args.directory+'make_non-text_files.log', 'a')
-localtime = time.localtime(time.time())
-sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started (file: MPC ID files)\n  ', localtime))
+#localtime = time.localtime(time.time())
+#sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started (file: MPC ID files)\n  ', localtime))
 
 # Get the 3 identification files:
 # ids.txt lists the multi-opposition unnumbered objects:
@@ -78,11 +81,6 @@ for item in numids_file:
         unpacked = me.packed_to_unpacked_desig(i)
         dic_item_unpacked.append(unpacked)
   id_dic[key] = dic_item_unpacked
-
-#if args.verbose:
-  #print('  Made the dictionary of numbered IDs:\n    '+str(round(time.time()-time_stamp,2))+' secs')
-  #time_stamp = time.time()
-
 for item in dbl_file:
   dic_item_packed = item.rstrip().split()
   dic_item_unpacked = list(map(me.packed_to_unpacked_desig,dic_item_packed[7:]))
@@ -96,9 +94,7 @@ for item in ids_file:
     dic_item_unpacked = list(map(me.packed_to_unpacked_desig,dic_item_packed))
     id_dic[key] = dic_item_unpacked
 
-#if args.verbose:
-  #print('  Made the dictionary of unnumbered IDs:\n    '+str(round(time.time()-time_stamp,2))+' secs')
-  #time_stamp = time.time()
+
 
 # Create new ID JSON file if MPCORB.DAT is the file that is being processed:
 
@@ -115,7 +111,7 @@ os.remove('ids.txt')
 os.remove('dbl.txt')
 
 localtime = time.localtime(time.time())
-sys.stderr.write(strftime('%H:%M:%S - Program finished without known errors\n', localtime))
+#sys.stderr.write(strftime('%H:%M:%S - Program finished without known errors\n', localtime))
 sys.stderr.close()
 sys.stderr = sys.__stderr__
 
