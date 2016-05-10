@@ -75,10 +75,10 @@ args = parser.parse_args()
 # If options file was provided, read arguments into a dictionary...:
 if args.options_file != '':
   options_dic = {}
-  if args.options_file != '':
-    with open(args.options_file,'r') as options_file:
-      for line in options_file:
-        options_dic[line.split(':')[0].strip()] = line.split(':')[1].strip()
+  #if args.options_file != '':
+  with open(args.options_file,'r') as options_file:
+    for line in options_file:
+      options_dic[line.split(':')[0].strip()] = line.split(':')[1].strip()
 
 # ...and set argument values:
   if 'flat_filename' in options_dic:
@@ -88,8 +88,10 @@ if args.options_file != '':
 
   if 'output_filename' in options_dic:
     args.output_filename = options_dic['output_filename'].strip('\'"')
+    print(' Found it')
   else:
     args.output_filename = ''
+    print(' Didn\'t find it')
 
   if 'num_header_lines' in options_dic:
     args.num_header_lines = options_dic['num_header_lines'].strip('\'"')
@@ -118,7 +120,8 @@ if args.options_file != '':
     if options_dic['col_start'] == '':
       args.col_start = -1
     else:
-      args.col_start = list(map(int, options_dic['col_start'].split(' ')))
+      #args.col_start = list(map(int, options_dic['col_start'].split(' ')))
+      args.col_start = list(map(int, options_dic['col_start'].split()))
   else:
     args.col_start = -1
 
@@ -126,7 +129,7 @@ if args.options_file != '':
     if options_dic['col_width'] == '':
       args.col_width = -1
     else:
-      args.col_width = list(map(int, options_dic['col_width'].split(' ')))
+      args.col_width = list(map(int, options_dic['col_width'].split()))
   else:
     args.col_width = -1
 
@@ -134,7 +137,7 @@ if args.options_file != '':
     if options_dic['col_type'] == '':
       args.col_type = ''
     else:
-      args.col_type = [i.strip('\'"') for i in options_dic['col_type'].split(' ')] # Get rid of spurious ' or "
+      args.col_type = [i.strip('\'"') for i in options_dic['col_type'].split()] # Get rid of spurious ' or "
   else:
     args.col_type = ''
 
