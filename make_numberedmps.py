@@ -47,16 +47,25 @@ numberedmps_dic = {}
 with open('NumberedMPs.txt', r) as nummps_file:
   for line in nummps_file:
     line_dic = {}
-    key = line[:9].lstrip('(').rstrip(')')
-    name = line[9:29].strip()
-    p_desig = line[29:41].strip()
-    line_dic['Discovery_date'] = '-'.join(line[41:52].split())
-    line_dic['Discovery_site'] = line[53:71]
-    ref = line[71:77]
+    key = line[:8].lstrip('(').rstrip(')')
+    name = line[9:28].strip()
+    if name != '':
+      line_dic['Name'] = name
+    p_desig = line[29:40].strip()
+    if p_desig != '':
+      line_dic['Principal_desig'] = p_desig
+    line_dic['Discovery_date'] = '-'.join(line[41:51].split())
+    discovery_asterisk = line[51].strip()
+    if discovery_asterisk != '':
+      line_dic['Discovery_rule'] = 'new'
+    else:
+      line_dic['Discovery_rule'] = 'old'
+    line_dic['Discovery_site'] = line[53:70]
+    ref = line[71:76]
     if ref != '':
       line_dic['Ref'] = ref
     line_dic['Discoverers'] = line[78:150]
-    
+    numberedmps_dic[key] = line_dic
   
   
 
