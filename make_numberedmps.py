@@ -31,8 +31,8 @@ if args.directory != '':
 
 # Open logfile and set starting time:
 sys.stderr = open(args.directory+'make_non-text_files.log', 'a')
-#localtime = time.localtime(time.time())
-#sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started (file: MPC ID files)\n  ', localtime))
+localtime = time.localtime(time.time())
+sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started (file: NumberedMPs.txt)\n  ', localtime))
 
 # Get the file with the discovery circumstances of the numbered minor planets:
 try:
@@ -44,10 +44,10 @@ except Exception as the_error:
   sys.exit(1)
 
 numberedmps_dic = {}
-with open('NumberedMPs.txt', r) as nummps_file:
+with open('NumberedMPs.txt', 'r') as nummps_file:
   for line in nummps_file:
     line_dic = {}
-    key = line[:8].lstrip('(').rstrip(')')
+    key = line[:8].lstrip(' (').rstrip(')')
     name = line[9:28].strip()
     if name != '':
       line_dic['Name'] = name
@@ -60,12 +60,28 @@ with open('NumberedMPs.txt', r) as nummps_file:
       line_dic['Discovery_rule'] = 'new'
     else:
       line_dic['Discovery_rule'] = 'old'
-    line_dic['Discovery_site'] = line[53:70]
-    ref = line[71:76]
+    line_dic['Discovery_site'] = line[53:71].strip()
+    ref = line[71:76].strip()
     if ref != '':
       line_dic['Ref'] = ref
-    line_dic['Discoverers'] = line[78:150]
+    line_dic['Discoverers'] = line[78:150].strip()
     numberedmps_dic[key] = line_dic
+
+with open('NumberedMPs.json', 'w') as output_json_file:
+  json.dump(numberedmps_dic, output_json_file, indent=0)
+
+with open('NumberedMPs.json', 'rb') as input_file:
+  with gzip.open(args.directory+'numberedmps.json.gz', 'wb', compresslevel=5) as output_file:
+    shutil.copyfileobj(input_file, output_file)
+
+os.remove('NumberedMPs.txt')
+os.remove('NumberedMPs.json')
+
+
   
-  
+localtime = time.localtime(time.time())
+sys.stderr.write(strftime('%H:%M:%S - Program finished without known errors\n', localtime))
+sys.stderr.close()
+sys.stderr = sys.__stderr__
+
 
