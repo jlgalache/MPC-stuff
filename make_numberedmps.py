@@ -12,7 +12,6 @@ import os
 import mpc_essentials as me
 import time
 from time import strftime
-import urllib.request
 import json
 import shutil
 import gzip
@@ -32,12 +31,12 @@ if args.directory != '':
 # Open logfile and set starting time:
 sys.stderr = open(args.directory+'make_non-text_files.log', 'a')
 localtime = time.localtime(time.time())
-sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started (file: NumberedMPs.txt)\n  ', localtime))
+#sys.stderr.write(strftime('%Y/%m/%d\n  %H:%M:%S - Run started (file: NumberedMPs.txt)\n  ', localtime))
 
 # Get the file with the discovery circumstances of the numbered minor planets:
 try:
-  urllib.request.urlretrieve('http://www.minorplanetcenter.net/iau/lists/NumberedMPs.txt', 'NumberedMPs.txt')
-  #shutil.copyfile('iau/lists/NumberedMPs.txt', 'NumberedMPs.txt')
+  #urllib.request.urlretrieve('http://www.minorplanetcenter.net/iau/lists/NumberedMPs.txt', 'NumberedMPs.txt')
+  shutil.copyfile('iau/lists/NumberedMPs.txt', 'NumberedMPs.txt')
 except Exception as the_error:
   localtime = time.localtime(time.time())
   sys.stderr.write(strftime('%H:%M:%S - Problem downloading file: \n  http://www.minorplanetcenter.net/iau/lists/NumberedMPs.txt\n  Error type: '+str(the_error)+'\n', localtime))
@@ -64,7 +63,7 @@ with open('NumberedMPs.txt', 'r') as nummps_file:
     ref = line[71:76].strip()
     if ref != '':
       line_dic['Ref'] = ref
-    line_dic['Discoverers'] = line[78:150].strip()
+    line_dic['Discoverers'] = line[78:176].strip()
     numberedmps_dic[key] = line_dic
 
 with open('NumberedMPs.json', 'w') as output_json_file:
@@ -77,11 +76,10 @@ with open('NumberedMPs.json', 'rb') as input_file:
 os.remove('NumberedMPs.txt')
 os.remove('NumberedMPs.json')
 
-
+os.chmod(args.directory+'numberedmps.json.gz', 0o774)
   
 localtime = time.localtime(time.time())
-sys.stderr.write(strftime('%H:%M:%S - Program finished without known errors\n', localtime))
+#sys.stderr.write(strftime('%H:%M:%S - Program finished without known errors\n', localtime))
 sys.stderr.close()
 sys.stderr = sys.__stderr__
-
 

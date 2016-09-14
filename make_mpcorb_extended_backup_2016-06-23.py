@@ -1,6 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# This script reads in any file with the MPCORB format and creates two new files
+# (a text-based .dat and a JSON file) with added data; they are called 'Extended'
+# versions.
+#
+# Example call sequence:
+#
+#   python make_mpcorb_extended.py NEA.txt --directory Extended_Files -v
+#
+# This will create two new files in the directory Extended_Files:
+#
+#   nea_extended.dat.gz
+#   nea_extended.json.gz
+#
+# The code will output various messages to screen.
+
+
 import argparse
 import urllib.request
 from itertools import islice
@@ -28,7 +44,7 @@ args = parser.parse_args()
 infile_soul = os.path.splitext(args.infile.lower())[0]
 
 if args.directory != '':
-  args.directory = args.directory.rstrip('/')+'/'
+  args.directory = args.directory.rstrip('/ ')+'/'
 
 # Open logfile and set starting time:
 sys.stderr = open(args.directory+'make_mpcorb_extended.log', 'a')
@@ -53,9 +69,6 @@ with open(infile_soul+'_infile.dat', 'r') as data_file:
     if line[:2] == '--':
       num_header_lines = c
       break
-#    if c == 100:
-#      num_header_lines = 0
-#      break
     if c > 100:
       break
 
@@ -95,16 +108,13 @@ ids_file = open('ids.txt', 'r')
 dbl_file = open('dbl.txt', 'r')
 numids_file = open('numids.txt', 'r')
 
-numids = numids_file.readlines()
-
 if args.verbose:
   print('  Read in the ID files:\n    '+str(round(time.time()-time_stamp,2))+' secs')
   time_stamp = time.time()
 
-
 # Make a dictionary with the ID files:
 id_dic = {}
-for item in numids:
+for item in numids_file:
   item = item.rstrip()
   key = item[:5]
   dic_item_packed = [item[i:i+7] for i in range(6, len(item), 7)]
@@ -112,8 +122,7 @@ for item in numids:
   for i in dic_item_packed:
     if i != '       ':
       if i[0].isnumeric():
-#        dic_item_unpacked.append("{0:10s}".format(i))
-         dic_item_unpacked.append("{0:10s}".format(i[:4]+' '+i[4:7]))
+        dic_item_unpacked.append("{0:10s}".format(i))
       else:
         unpacked = me.packed_to_unpacked_desig(i)
         dic_item_unpacked.append("{0:10s}".format(unpacked))
@@ -129,13 +138,16 @@ for item in dbl_file:
   id_dic[item[:7]] = dic_item_unpacked
 for item in ids_file:
   item = item.rstrip()
-  dic_item_packed = [item[i:i+7] for i in range(0, len(item), 7)]
-  dic_item_unpacked = list(map("{0:10s}".format,list(map(me.packed_to_unpacked_desig,dic_item_packed))))
-  id_dic[item[:7]] = dic_item_unpacked
+  if len(item) > 7:
+#    key = item[:7]
+    dic_item_packed = [item[i:i+7] for i in range(0, len(item), 7)]
+    dic_item_unpacked = list(map("{0:10s}".format,list(map(me.packed_to_unpacked_desig,dic_item_packed))))
+    id_dic[item[:7]] = dic_item_unpacked
 
 if args.verbose:
   print('  Made the dictionary of unnumbered IDs:\n    '+str(round(time.time()-time_stamp,2))+' secs')
   time_stamp = time.time()
+
 
 try:
   data_file = open(infile_soul+'_infile.dat', 'rb')
@@ -151,11 +163,9 @@ with open(infile_soul+'_infile.dat', 'r') as data_file:
   head = list(islice(data_file, num_header_lines))
   for item in head:
     output_file.write(item)
-  ctr = 0  # FOR DEBUGGING PURPOSES
   for line in data_file:
     if not line.strip():
       output_file.write('\n')
-      ctr = ctr + 1  # FOR DEBUGGING PURPOSES
       if args.verbose:
         print('  Finished objects in Group '+str(ctr)+':\n    '+str(round(time.time()-time_stamp,2))+' secs')  # FOR DEBUGGING PURPOSES
         time_stamp = time.time()  # FOR DEBUGGING PURPOSES
@@ -376,9 +386,6 @@ os.remove('numids.txt')
 os.remove('ids.txt')
 os.remove('dbl.txt')
 
-os.chmod(args.directory+infile_soul+'_extended.dat.gz', 0o774)
-os.chmod(args.directory+infile_soul+'_extended.json.gz', 0o774)
-
 if args.verbose:
   print('  Finished in a total time of:\n    '+str(round((time.time()-start_time)/60.0,2))+' mins')
 
@@ -386,5 +393,4 @@ localtime = time.localtime(time.time())
 sys.stderr.write(strftime('%H:%M:%S - Program finished without known errors\n', localtime))
 sys.stderr.close()
 sys.stderr = sys.__stderr__
-
 

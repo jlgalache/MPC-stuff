@@ -88,10 +88,8 @@ if args.options_file != '':
 
   if 'output_filename' in options_dic:
     args.output_filename = options_dic['output_filename'].strip('\'"')
-    print(' Found it')
   else:
     args.output_filename = ''
-    print(' Didn\'t find it')
 
   if 'num_header_lines' in options_dic:
     args.num_header_lines = options_dic['num_header_lines'].strip('\'"')
@@ -145,7 +143,7 @@ if args.options_file != '':
     if options_dic['col_names'] == '':
       args.col_names = ''
     else:
-      args.col_names = [i.strip('\'"') for i in options_dic['col_names'].split(' ')] # Get rid of spurious ' or "
+      args.col_names = [i.strip('\'"') for i in options_dic['col_names'].split()] # Get rid of spurious ' or "
   else:
     args.col_names = ''
 

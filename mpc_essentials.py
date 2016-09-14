@@ -214,11 +214,11 @@ def packed_to_unpacked_desig(desig):
   if l == 5:
     tags = [ ('J', 'Jupiter'), ('S', 'Saturn'), ('U', 'Uranus'), ('N', 'Neptune') ]
     for tag in tags:
-      if tag[0] in desig[0]:
+      if tag[0] in desig[0] and desig[4] == "S":
         new_desig = tag[1] + " " + to_roman(int(desig[1:4]))
 
     if new_desig == "":
-      if desig[4] in [ 'P', 'D' ]:
+      if desig[4] in [ 'P', 'D', 'X' ]:
         new_desig = str(int(desig[0:4])) + desig[4]
 
       else:
@@ -240,7 +240,6 @@ def packed_to_unpacked_desig(desig):
         new_desig = desig[0] + "/"
         t10 = desig[1:]
 
-    #print("t10 = ", t10)
     if t10 != "":
       tags = [ ("PLS", "P-L"), ("T1S", "T-1"), ("T2S", "T-2"), ("T3S", "T-3") ]
 
